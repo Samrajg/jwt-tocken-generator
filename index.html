@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JWT Secret Key & Token Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: rgba(17, 24, 39, 0.85);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --accent: #06b6d4;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --code-bg: #030712;
+      --success: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.15) 0px, transparent 50%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 760px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(16px);
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      background: rgba(99, 102, 241, 0.15);
+      color: #818cf8;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 1.9rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+      margin-bottom: 8px;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 4px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.9rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .option-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .option-card:hover {
+      border-color: rgba(99, 102, 241, 0.5);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .option-card.selected {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.15);
+      color: #ffffff;
+    }
+
+    .option-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .option-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      background: var(--code-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: #e5e7eb;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--primary);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--primary) 0%, #4338ca 100%);
+      color: white;
+      border: none;
+      padding: 14px 20px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
+      transition: transform 0.15s ease, filter 0.15s ease;
+    }
+
+    .btn:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .result-container {
+      margin-top: 24px;
+      position: relative;
+    }
+
+    .result-box {
+      background: var(--code-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 16px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88rem;
+      color: #38bdf8;
+      word-break: break-all;
+      line-height: 1.5;
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: -32px;
+      right: 0;
+      background: transparent;
+      border: none;
+      color: var(--accent);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: background 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: rgba(6, 182, 212, 0.1);
+    }
+
+    .token-breakdown {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .part-tag {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-right: 6px;
+    }
+
+    .part-header { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+    .part-payload { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+    .part-sig { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #10b981;
+      color: #ffffff;
+      padding: 10px 20px;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      z-index: 100;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    .footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <span class="badge">Crypto Safe & Client-Side</span>
+      <h1>JWT Studio</h1>
+      <p class="subtitle">Cryptographically secure Secret Keys & Signed JWTs directly in your browser</p>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('secret-tab', this)">1. Secret Key Generator</button>
+      <button class="tab-btn" onclick="switchTab('jwt-tab', this)">2. Sign Real JWT (HS256)</button>
+    </div>
+
+    <!-- TAB 1: Secret Key Generator -->
+    <div id="secret-tab" class="section active">
+      <div class="form-group">
+        <label>Key Bit-Strength</label>
+        <div class="options-grid" id="bits-selector">
+          <div class="option-card selected" onclick="selectLength(32, this)">
+            <div class="option-title">256-bit</div>
+            <div class="option-desc">32 bytes (Standard)</div>
+          </div>
+          <div class="option-card" onclick="selectLength(48, this)">
+            <div class="option-title">384-bit</div>
+            <div class="option-desc">48 bytes (Strong)</div>
+          </div>
+          <div class="option-card" onclick="selectLength(64, this)">
+            <div class="option-title">512-bit</div>
+            <div class="option-desc">64 bytes (Ultra)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Output Format</label>
+        <div class="options-grid" id="format-selector">
+          <div class="option-card selected" onclick="selectFormat('hex', this)">
+            <div class="option-title">HEX</div>
+            <div class="option-desc">Like secrets.token_hex</div>
+          </div>
+          <div class="option-card" onclick="selectFormat('base64', this)">
+            <div class="option-title">Base64</div>
+            <div class="option-desc">URL & config friendly</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn" onclick="generateSecret()">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        Generate Secret Key
+      </button>
+
+      <div class="result-container">
+        <button class="copy-btn" onclick="copyText('secret-result')">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+          Copy Secret
+        </button>
+        <div class="result-box" id="secret-result">Click Generate above</div>
+      </div>
+    </div>
+
+    <!-- TAB 2: Full JWT Generator -->
+    <div id="jwt-tab" class="section">
+      <div class="form-group">
+        <label>Secret Signing Key</label>
+        <input type="text" id="jwt-signing-secret" placeholder="Enter secret or generate one" />
+      </div>
+
+      <div class="form-group">
+        <label>Payload (JSON)</label>
+        <textarea id="jwt-payload">{
+  "sub": "user_10293",
+  "name": "Alex Carter",
+  "role": "admin",
+  "iat": 1700000000
+}</textarea>
+      </div>
+
+      <button class="btn" onclick="generateJwtToken()">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+        Sign & Generate JWT
+      </button>
+
+      <div class="result-container">
+        <button class="copy-btn" onclick="copyText('jwt-result')">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+          Copy Token
+        </button>
+        <div class="result-box" id="jwt-result">Provide a secret and click Sign</div>
+      </div>
+
+      <div class="token-breakdown" id="token-breakdown" style="display: none;">
+        <div><span class="part-tag part-header">HEADER</span> Algorithm & Token Type</div>
+        <div><span class="part-tag part-payload">PAYLOAD</span> Claims & User Data</div>
+        <div><span class="part-tag part-sig">SIGNATURE</span> HMAC-SHA256 verified</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Powered by Browser Web Crypto API (SubtleCrypto) • 100% Private & Offline
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Copied to clipboard!</div>
+
+  <script>
+    let selectedBytes = 32;
+    let selectedFormat = 'hex';
+
+    function switchTab(tabId, el) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      el.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    function selectLength(bytes, el) {
+      selectedBytes = bytes;
+      document.querySelectorAll('#bits-selector .option-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      generateSecret();
+    }
+
+    function selectFormat(fmt, el) {
+      selectedFormat = fmt;
+      document.querySelectorAll('#format-selector .option-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      generateSecret();
+    }
+
+    function generateSecret() {
+      const array = new Uint8Array(selectedBytes);
+      window.crypto.getRandomValues(array);
+
+      let keyStr = '';
+      if (selectedFormat === 'hex') {
+        keyStr = Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('');
+      } else {
+        const binStr = Array.from(array).map(b => String.fromCharCode(b)).join('');
+        keyStr = btoa(binStr);
+      }
+
+      document.getElementById('secret-result').textContent = keyStr;
+      
+      // Auto-populate into the JWT generator tab for convenience
+      const signSecretInput = document.getElementById('jwt-signing-secret');
+      if (!signSecretInput.value) {
+        signSecretInput.value = keyStr;
+      }
+    }
+
+    // Base64URL helpers
+    function base64UrlEncode(str) {
+      return btoa(unescape(encodeURIComponent(str)))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+    }
+
+    function bufferToBase64Url(buf) {
+      const bytes = new Uint8Array(buf);
+      let binary = '';
+      for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return btoa(binary)
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+    }
+
+    // Generate full HS256 JWT using Web Crypto API
+    async function generateJwtToken() {
+      const secret = document.getElementById('jwt-signing-secret').value.trim();
+      const payloadRaw = document.getElementById('jwt-payload').value.trim();
+
+      if (!secret) {
+        showToast('Please enter or generate a secret key first!');
+        return;
+      }
+
+      let payloadObj;
+      try {
+        payloadObj = JSON.parse(payloadRaw);
+      } catch (err) {
+        showToast('Invalid JSON in payload!');
+        return;
+      }
+
+      // Add fresh 'iat' timestamp if not customized
+      if (!payloadObj.iat) {
+        payloadObj.iat = Math.floor(Date.now() / 1000);
+      }
+
+      const header = { alg: "HS256", typ: "JWT" };
+      const encodedHeader = base64UrlEncode(JSON.stringify(header));
+      const encodedPayload = base64UrlEncode(JSON.stringify(payloadObj));
+      const signingInput = `${encodedHeader}.${encodedPayload}`;
+
+      try {
+        const enc = new TextEncoder();
+        const key = await window.crypto.subtle.importKey(
+          "raw",
+          enc.encode(secret),
+          { name: "HMAC", hash: { name: "SHA-256" } },
+          false,
+          ["sign"]
+        );
+
+        const signatureBuffer = await window.crypto.subtle.sign(
+          "HMAC",
+          key,
+          enc.encode(signingInput)
+        );
+
+        const encodedSignature = bufferToBase64Url(signatureBuffer);
+        const jwt = `${signingInput}.${encodedSignature}`;
+
+        document.getElementById('jwt-result').innerHTML = `
+          <span style="color: #f87171">${encodedHeader}</span>.<span style="color: #c084fc">${encodedPayload}</span>.<span style="color: #38bdf8">${encodedSignature}</span>
+        `;
+        document.getElementById('token-breakdown').style.display = 'flex';
+      } catch (e) {
+        console.error(e);
+        showToast('Error generating token: ' + e.message);
+      }
+    }
+
+    function copyText(elementId) {
+      const el = document.getElementById(elementId);
+      const text = el.innerText || el.textContent;
+      if (!text || text.includes('Click Generate') || text.includes('Provide a secret')) {
+        showToast('Nothing to copy yet!');
+        return;
+      }
+
+      navigator.clipboard.writeText(text.trim()).then(() => {
+        showToast('Copied to clipboard!');
+      }).catch(() => {
+        showToast('Failed to copy');
+      });
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2200);
+    }
+
+    // Auto generate secret on first load
+    window.addEventListener('DOMContentLoaded', () => {
+      generateSecret();
+    });
+  </script>
+</body>
+</html>
